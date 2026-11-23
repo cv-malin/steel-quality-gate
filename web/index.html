@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>钢材表面缺陷智能质检台 · Steel Quality Gate</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --panel:#ffffff; --line:#d8dce3; --ink:#1c2430; --muted:#67707e;
+    --accent:#2f5d8a; --ok:#1f8a4c; --ng:#c3372c; --warn:#a86b12; --chip:#eef1f5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Microsoft YaHei",system-ui,-apple-system,sans-serif;
+       background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55}
+  header{background:#1c2635;color:#fff;padding:14px 26px;display:flex;align-items:center;
+         justify-content:space-between;border-bottom:3px solid var(--accent)}
+  header h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.5px}
+  header .sub{font-size:12px;color:#aeb9c8;margin-top:2px}
+  header .tag{font-size:12px;background:#2c3a4f;padding:5px 11px;border-radius:4px;color:#cfe0f2}
+  main{max-width:1440px;margin:0 auto;padding:20px 24px 40px}
+  .grid{display:grid;grid-template-columns:270px 1fr 300px;gap:18px;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+  .card h2{font-size:13px;margin:0 0 14px;color:var(--muted);font-weight:600;
+           text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);padding-bottom:9px}
+  label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
+  select,input[type=number]{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:4px;
+       background:#fff;color:var(--ink);font-size:13px;font-family:inherit}
+  button{width:100%;padding:10px;margin-top:16px;background:var(--accent);color:#fff;border:0;
+       border-radius:4px;font-size:14px;cursor:pointer;font-weight:600}
+  button:hover{background:#254b71}
+  button.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent);margin-top:9px}
+  button.ghost:hover{background:#eef4fa}
+  .hint{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6}
+  /* 视图区 */
+  .views{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .view{background:#fff;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+  .view .cap{font-size:12px;padding:7px 10px;background:#f0f2f5;border-bottom:1px solid var(--line);
+             color:#39465a;font-weight:600}
+  .view img{width:100%;display:block;background:#222}
+  /* 判定区 */
+  .verdict{padding:15px;border-radius:5px;text-align:center;margin-bottom:14px;border:1px solid}
+  .verdict.OK{background:#eaf7ef;border-color:#b6dfc6;color:var(--ok)}
+  .verdict.NG{background:#fdecea;border-color:#f0bfba;color:var(--ng)}
+  .verdict .big{font-size:34px;font-weight:700;line-height:1.1}
+  .verdict .small{font-size:11px;margin-top:6px;opacity:.85}
+  .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12px}
+  .kv b{font-weight:600}
+  .reasons{margin-top:12px;font-size:12px}
+  .reasons div{padding:5px 8px;background:var(--chip);border-radius:3px;margin-bottom:5px;color:#3a4657}
+  .tagline{margin-top:10px;font-size:11px;color:var(--muted)}
+  .pill{display:inline-block;padding:2px 7px;border-radius:9px;font-size:11px;margin:1px 3px 1px 0}
+  .pill.critical{background:#fdecea;color:var(--ng)}
+  .pill.major{background:#fff3e0;color:var(--warn)}
+  .pill.minor{background:#eaf7ef;color:var(--ok)}
+  /* 实验表 */
+  .exp{margin-top:18px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border:1px solid var(--line);padding:8px 9px;text-align:center}
+  th{background:#eef1f5;color:#3a4657;font-weight:600}
+  td.mode{text-align:left;font-weight:600}
+  tr.best td{background:#f0f8f3}
+  .loading{color:var(--muted);font-size:12px;padding:8px}
+  footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>钢材表面缺陷智能质检台</h1>
+    <div class="sub">Steel Quality Gate · 参考差分检测 + 可解释致命度判定层 · 对齐 NEU-DET 六类缺陷</div>
+  </div>
+  <div class="tag">v1.0.0 · 本地演示</div>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- 左：控制 -->
+    <section class="card">
+      <h2>样本控制</h2>
+      <label>缺陷类型</label>
+      <select id="kind"></select>
+      <label>随机种子</label>
+      <input type="number" id="seed" value="1000">
+      <label>难度</label>
+      <select id="diff">
+        <option value="easy">简单</option>
+        <option value="normal" selected>正常</option>
+        <option value="hard">困难（缺陷缩小）</option>
+      </select>
+      <label>判定策略</label>
+      <select id="policy">
+        <option value="grade">启用判定层（分级放行）</option>
+        <option value="raw">对照：有框即 NG</option>
+      </select>
+      <button id="run">生成样本并检测</button>
+      <button class="ghost" id="nextr">换下一个种子</button>
+      <div class="hint">界面五视图对照：原图 / 真值 / 基线(全局阈值) / 改进(标准板差分) / 判定层(过滤+分级)。
+        所有计算在本机完成，不联网。难度"困难"用于展示失败边界。</div>
+    </section>
+
+    <!-- 中：五视图 -->
+    <section class="card">
+      <h2>检测过程对照 · 五视图</h2>
+      <div class="views" id="views">
+        <div class="loading">点击左侧"生成样本并检测"开始…</div>
+      </div>
+      <div class="exp">
+        <h2 style="margin-bottom:10px">三档对照实验（140 块板：6 类×20 + 良板 20）</h2>
+        <button id="expbtn" style="width:180px;margin:0 0 10px">运行对照实验</button>
+        <div id="expret" class="loading">尚未运行</div>
+      </div>
+    </section>
+
+    <!-- 右：判定 -->
+    <section class="card">
+      <h2>板级判定结果</h2>
+      <div id="verdictbox" style="color:var(--muted);font-size:12px">等待检测…</div>
+    </section>
+  </div>
+</main>
+<footer>PCB/钢材质检系列 · 核心创新：把"检出缺陷"变成"按工艺严重度决定放行的可解释决策" · MIT License</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const API='';
+const KINDS=[['clean','良板（无缺陷）'],['inclusion','夹杂 inclusion'],['patches','斑块 patches'],
+  ['crazing','龟裂 crazing'],['pitted_surface','点蚀 pitted_surface'],
+  ['rolled-in_scale','轧制鳞片 rolled-in_scale'],['scratches','划痕 scratches']];
+KINDS.forEach(([v,t])=>{let o=document.createElement('option');o.value=v;o.textContent=t;$('kind').appendChild(o)});
+$('kind').value='inclusion';
+
+async function post(path,body){const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json()}
+
+async function run(){
+  $('views').innerHTML='<div class="loading">检测中…</div>';
+  const res=await post('/api/gen',{kind:$('kind').value,seed:+$('seed').value,
+    difficulty:$('diff').value,policy:$('policy').value});
+  const names=Object.keys(res.views);
+  $('views').innerHTML=names.map(n=>`<div class="view"><div class="cap">${n}</div><img src="${res.views[n]}"></div>`).join('');
+  const v=res.verdict;
+  let pills=res.detected.map(d=>`<span class="pill ${d.sev}">${d.kind}·${d.sev}</span>`).join('')||'—';
+  let truthPill=res.defects.map(d=>`<span class="pill ${d.sev}">真值:${d.type}·${d.sev}</span>`).join('')||'真值:良板';
+  $('verdictbox').innerHTML=`
+    <div class="verdict ${v}"><div class="big">${v}</div>
+      <div class="small">真值 ${res.truth} · ${res.correct?'判定正确':'判定错误'} · 严重度 ${res.severity}</div></div>
+    <div class="kv"><span>缺陷级召回</span><b>${res.improved_count>0?'检出':'—'}</b></div>
+    <div class="kv"><span>基线检出候选</span><b>${res.baseline_count}</b></div>
+    <div class="kv"><span>改进检出候选</span><b>${res.improved_count}</b></div>
+    <div class="kv"><span>判定层过滤</span><b>${res.rejected_n} 个</b></div>
+    <div class="tagline">真值：${truthPill}</div>
+    <div class="tagline">检出：${pills}</div>
+    <div class="reasons"><div style="background:none;padding:0;color:var(--muted)">判定理由（逐条）：</div>
+      ${res.reasons.map(r=>`<div>${r}</div>`).join('')}</div>`;
+}
+$('run').onclick=run;
+$('nextr').onclick=()=>{$('seed').value=+$('seed').value+1;run()};
+
+$('expbtn').onclick=async()=>{
+  $('expret').innerHTML='<div class="loading">运行中，约 20 秒…</div>';
+  const r=await post('/api/experiment',{config:{n:20,difficulty:$('diff').value}});
+  let rows=r.results.map(x=>`<tr class="${x.mode==='improved_grade'?'best':''}">
+    <td class="mode">${x.mode==='baseline'?'基线·全局阈值':x.mode==='improved'?'改进·标准板差分':'改进+判定层'}</td>
+    <td>${(x.recall*100).toFixed(1)}%</td><td>${(x.precision*100).toFixed(1)}%</td>
+    <td>${(x.board_acc*100).toFixed(1)}%</td><td>${x.fn_board}</td><td>${x.fp_board}</td>
+    <td>${x.sev_acc?(x.sev_acc*100).toFixed(1)+'%':'—'}</td></tr>`).join('');
+  $('expret').innerHTML=`<table><thead><tr><th>档位</th><th>召回</th><th>精确率</th><th>板级准确率</th><th>漏检板</th><th>误报板</th><th>严重度准确率</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="tagline">IoU 命中阈值 ${r.config.iou_thr}，三档一致以保证对照公平。改进+判定层板级最优。</div>`;
+};
+</script>
+</body>
+</html>
