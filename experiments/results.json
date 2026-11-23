@@ -1,0 +1,75 @@
+{
+  "config": {
+    "n_per_type": 20,
+    "n_clean": 20,
+    "difficulty": "normal",
+    "seed0": 1000,
+    "total_boards": 140,
+    "iou_thr": 0.15
+  },
+  "results": [
+    {
+      "mode": "baseline",
+      "tp": 18,
+      "fp": 2375,
+      "fn": 102,
+      "precision": 0.0075,
+      "recall": 0.15,
+      "f1": 0.0143,
+      "board_acc": 0.5714,
+      "fn_board": 0,
+      "fp_board": 60,
+      "sev_acc": 0.0,
+      "per_class_recall": {
+        "crazing": 0.0,
+        "inclusion": 0.3,
+        "patches": 0.6,
+        "pitted_surface": 0.0,
+        "rolled-in_scale": 0.0,
+        "scratches": 0.0
+      }
+    },
+    {
+      "mode": "improved",
+      "tp": 120,
+      "fp": 9,
+      "fn": 0,
+      "precision": 0.9302,
+      "recall": 1.0,
+      "f1": 0.9639,
+      "board_acc": 0.7143,
+      "fn_board": 0,
+      "fp_board": 40,
+      "sev_acc": 0.9667,
+      "per_class_recall": {
+        "crazing": 1.0,
+        "inclusion": 1.0,
+        "patches": 1.0,
+        "pitted_surface": 1.0,
+        "rolled-in_scale": 1.0,
+        "scratches": 1.0
+      }
+    },
+    {
+      "mode": "improved_grade",
+      "tp": 120,
+      "fp": 9,
+      "fn": 0,
+      "precision": 0.9302,
+      "recall": 1.0,
+      "f1": 0.9639,
+      "board_acc": 0.9714,
+      "fn_board": 1,
+      "fp_board": 3,
+      "sev_acc": 0.9667,
+      "per_class_recall": {
+        "crazing": 1.0,
+        "inclusion": 1.0,
+        "patches": 1.0,
+        "pitted_surface": 1.0,
+        "rolled-in_scale": 1.0,
+        "scratches": 1.0
+      }
+    }
+  ]
+}
