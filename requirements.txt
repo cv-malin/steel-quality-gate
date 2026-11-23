@@ -1,0 +1,3 @@
+numpy>=1.24
+opencv-python>=4.8
+matplotlib>=3.7   # 仅生成实验图表时需要，运行/演示不需要
